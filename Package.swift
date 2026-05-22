@@ -83,6 +83,7 @@ let noCudaCmlxExcludes = [
     let cxxSettings: [CXXSetting]
     let linkerSettings: [LinkerSetting]
     let mlxSwiftExcludes: [String]
+    let mlxFastExcludes: [String]
 
     if Context.environment["SPM_CUDA"] != "0" {
         // Linux with CUDA
@@ -138,6 +139,7 @@ let noCudaCmlxExcludes = [
             "GPU+Metal.swift",
             "MLXArray+Metal.swift",
         ]
+        mlxFastExcludes = []
     } else {
         // Linux without CUDA (CPU only)
 
@@ -169,9 +171,9 @@ let noCudaCmlxExcludes = [
             "GPU+Metal.swift",
             "GPU+CUDA.swift",
             "MLXArray+Metal.swift",
-            "MLXFast.swift",
             "MLXFastKernel.swift",
         ]
+        mlxFastExcludes = ["MLXFastKernel.swift"]
     }
 #else
     // Apple's platforms with Metal
@@ -208,6 +210,7 @@ let noCudaCmlxExcludes = [
     let mlxSwiftExcludes: [String] = [
         "GPU+CUDA.swift",
     ]
+    let mlxFastExcludes: [String] = []
 #endif
 
 let cmlx = Target.target(
@@ -343,6 +346,7 @@ let package = Package(
         .target(
             name: "MLXFast",
             dependencies: ["MLX", "Cmlx"],
+            exclude: mlxFastExcludes,
             swiftSettings: [
                 .enableExperimentalFeature("StrictConcurrency")
             ]
