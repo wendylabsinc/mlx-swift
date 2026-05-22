@@ -79,6 +79,9 @@ struct CudaBuild: BuildToolPlugin {
             }
         }
 
+        // Sort for a deterministic compilation order and to enable serialization.
+        sourceCuFiles.sort { $0.path < $1.path }
+
         print("Source files: \(sourceCuFiles.map { $0.relativePath })")
 
         let outputDir = context.pluginWorkDirectoryURL
@@ -116,8 +119,14 @@ struct CudaBuild: BuildToolPlugin {
         let headerSearchPathArgs = settings.headerSearchPaths.flatMap { ["-I", sourceDirPath + $0] }
         let stdArgs = settings.cppLanguageStandard.map { ["--std", $0] } ?? []
 
+        // Serialize nvcc invocations by declaring a dependency on the previous
+        // compilation's output. Running multiple nvcc processes in parallel can
+        // exhaust memory on constrained build hosts (e.g. Jetson, CI runners).
+        var previousCpp: URL? = nil
+
         for inputFile in sourceCuFiles + generatedCuFiles {
             let outputCpp = URL(string: inputFile.relativePath, relativeTo: outputDir)!.deletingPathExtension().appendingPathExtension("cpp")
+            let inputFiles: [URL] = previousCpp.map { [inputFile, $0] } ?? [inputFile]
             commands.append(
                 .buildCommand(
                     displayName: "Compiling \(inputFile.lastPathComponent) to \(outputCpp.lastPathComponent)",
@@ -129,10 +138,11 @@ struct CudaBuild: BuildToolPlugin {
                         inputFile.path,
                         "-o", outputCpp.path,
                     ],
-                    inputFiles: [inputFile],
+                    inputFiles: inputFiles,
                     outputFiles: [outputCpp]
                 )
             )
+            previousCpp = outputCpp
         }
 
         // Invoke `encuda link` with all .cpp files

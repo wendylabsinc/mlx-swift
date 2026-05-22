@@ -115,10 +115,19 @@ let noCudaCmlxExcludes = [
             "mlx/mlx/backend/cuda/quantized/qmm/fp_qmv.cu",
         ] + noMetalCmlxExcludes
 
-        cxxSettings = [
+        // Derive SM major version from CUDA_ARCH (e.g. "sm_87" → 8) and pass it
+        // as a compile-time define so dispatch_cutlass_arch in grouped GEMM only
+        // instantiates templates for the target architecture family.
+        var cudaCxxSettings: [CXXSetting] = [
             .unsafeFlags(["-I/usr/local/cuda/include"]),
             .unsafeFlags(["-I/usr/local/cuda/include/cccl"]),
         ]
+        if let arch = Context.environment["CUDA_ARCH"],
+           arch.hasPrefix("sm_"),
+           let major = arch.dropFirst(3).prefix(1).first.flatMap({ Int(String($0)) }) {
+            cudaCxxSettings.append(.define("MLX_CUTLASS_ARCH_SM_MAJOR", to: "\(major)"))
+        }
+        cxxSettings = cudaCxxSettings
 
         linkerSettings = [
             .linkedLibrary("gfortran", .when(platforms: [.linux])),
