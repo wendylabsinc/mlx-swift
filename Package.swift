@@ -120,6 +120,10 @@ let noCudaCmlxExcludes = [
         var cudaCxxSettings: [CXXSetting] = [
             .unsafeFlags(["-I/usr/local/cuda/include"]),
             .unsafeFlags(["-I/usr/local/cuda/include/cccl"]),
+            // glibc 2.39 exposes _Float32/_Float64 etc. in stdlib.h when _GNU_SOURCE
+            // is defined (CUDA headers do this).  bits/floatn.h only typedefs them
+            // for g++; the Swift toolchain's clang 19 needs this shim header.
+            .unsafeFlags(["-include", "/usr/local/include/mlx_floatn_compat.h"]),
         ]
         if let arch = Context.environment["CUDA_ARCH"],
            arch.hasPrefix("sm_"),
