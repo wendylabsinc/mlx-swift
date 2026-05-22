@@ -12,6 +12,7 @@
         "mlx/mlx/backend/metal/kernels",
         "mlx/mlx/backend/metal/jit",
         "mlx/mlx/backend/no_cpu",
+        "mlx/mlx/backend/cuda/gemms/cublas_gemm_batched_12_9.cu",
         "mlx-conditional",
         "mlx-c/examples",
         "json",

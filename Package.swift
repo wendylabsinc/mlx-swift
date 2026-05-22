@@ -96,7 +96,6 @@ let noCudaCmlxExcludes = [
             "mlx/mlx/backend/no_gpu",
             "mlx/mlx/backend/cuda/no_cuda.cpp",
             "mlx/mlx/backend/cuda/quantized/no_qqmm_impl.cpp",
-            "mlx/mlx/backend/cuda/gemms/cublas_gemm_batched_12_0.cpp",
             "mlx/mlx/backend/no_cpu",  // Exclude no_cpu backend on Linux, use cpu instead
             "mlx/mlx/backend/cpu/gemms/bnns.cpp",  // macOS Accelerate version
             "mlx-conditional",
