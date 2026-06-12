@@ -49,9 +49,17 @@ struct Example1 {
             print(arr.dtype)
             print(arr.shape)
             print(arr.ndim)
-            print(arr.asType(.int64))
+            print("--")
+            print(arr)
+            print(arr.dtype)
+            print(arr.shape)
+            print(arr.ndim)
+            print("--")
+            arr[0, 1] = MLXArray(Int32(42))
+            print("-- ok")
 
-            print(arr[1])
+            // print(arr.asType(.int64))
+            // print(arr[1])
             print(arr[0, 1].item(Int32.self))
         }
     }

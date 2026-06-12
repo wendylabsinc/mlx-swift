@@ -32,6 +32,13 @@ extension Encuda {
                 print("Output file: \(output)")
             }
 
+            if isUpToDate() {
+                if verbose {
+                    print("Output is up to date, skipping link")
+                }
+                return
+            }
+
             let stdArgs = std.map { ["-std=\($0)"] } ?? []
             let archArgs =
                 ProcessInfo.processInfo.environment["CUDA_ARCH"].map { ["-arch", $0] } ?? []
@@ -89,6 +96,21 @@ extension Encuda {
             guard process.terminationStatus == 0 else {
                 throw EncudaError.clangFailed(process.terminationStatus)
             }
+        }
+
+        private func isUpToDate() -> Bool {
+            let fm = FileManager.default
+            let outputURL = URL(fileURLWithPath: output)
+            guard fm.fileExists(atPath: output),
+                let outputMod = (try? outputURL.resourceValues(forKeys: [.contentModificationDateKey]))?.contentModificationDate
+            else { return false }
+            for input in inputFiles {
+                guard fm.fileExists(atPath: input),
+                    let inputMod = (try? URL(fileURLWithPath: input).resourceValues(forKeys: [.contentModificationDateKey]))?.contentModificationDate
+                else { return false }
+                if inputMod >= outputMod { return false }
+            }
+            return true
         }
     }
 }
